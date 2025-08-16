@@ -4,7 +4,14 @@ import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from '@/lib/prisma'
 import { Role } from '@prisma/client'
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ''
+// ✅ 改成多個 email，逗號分隔
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean)
+
+const isAdmin = (email?: string | null) =>
+  !!email && ADMIN_EMAILS.includes(email.toLowerCase())
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,7 +21,7 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: "openid email profile",
-          prompt: "select_account", // 強制顯示帳號選擇頁面
+          prompt: "select_account",
           access_type: "offline",
           response_type: "code"
         }
@@ -22,63 +29,56 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: '/',
+    signIn: '/', // 確保首頁不會無限重導
   },
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         try {
-          // 檢查使用者是否已存在
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
+          const email = user.email!
+          const now = new Date()
+
+          // ✅ 用 upsert 防止競態 + 同時處理新增/更新
+          await prisma.user.upsert({
+            where: { email },
+            create: {
+              // ✅ 用 providerAccountId 當 Google 唯一 ID
+              googleId: account.providerAccountId,
+              email,
+              name: user.name!,
+              image: user.image,
+              // ⚠️ 如果你的 Prisma 欄位是 DateTime，這行要改成日期或拿掉
+              // emailVerified: (profile as any)?.email_verified ? new Date() : null,
+              // 如果你的欄位是 Boolean 才保留這行：
+              // emailVerified: Boolean((profile as any)?.email_verified),
+
+              firstName: (profile as any)?.given_name,
+              lastName: (profile as any)?.family_name,
+              locale: (profile as any)?.locale || 'zh-TW',
+              role: (isAdmin(email) ? 'ADMIN' : 'USER') as Role,
+              lastLoginAt: now,
+            },
+            update: {
+              name: user.name ?? undefined,
+              image: user.image ?? undefined,
+              lastLoginAt: now,
+              // ✅ 若之後把某人加入/移出管理員名單，這裡會在下次登入時自動修正
+              role: (isAdmin(email) ? 'ADMIN' : 'USER') as Role,
+            }
           })
 
-          const userData = {
-            googleId: user.id,
-            email: user.email!,
-            name: user.name!,
-            image: user.image,
-            emailVerified: Boolean(user.email_verified),
-            firstName: (profile as any)?.given_name,
-            lastName: (profile as any)?.family_name,
-            locale: (profile as any)?.locale || 'zh-TW',
-            role: (user.email === ADMIN_EMAIL ? 'ADMIN' : 'USER') as Role,
-            lastLoginAt: new Date()
-          }
-
-          if (existingUser) {
-            // 更新現有使用者的登入時間和基本資訊
-            await prisma.user.update({
-              where: { email: user.email! },
-              data: {
-                name: userData.name,
-                image: userData.image,
-                lastLoginAt: userData.lastLoginAt,
-                role: userData.role
-              }
-            })
-          } else {
-            // 建立新使用者
-            await prisma.user.create({
-              data: userData
-            })
-          }
-          
           return true
         } catch (error) {
           console.error('Error saving user to database:', error)
-          // 即使資料庫操作失敗，也允許登入
-          return true
+          return true // 就算 DB 失敗也允許登入
         }
       }
-      
       return true
     },
 
     async session({ session }) {
       if (session.user?.email) {
         try {
-          // 從資料庫載入完整的使用者資訊
           const dbUser = await prisma.user.findUnique({
             where: { email: session.user.email },
             select: {
@@ -97,6 +97,13 @@ export const authOptions: NextAuthOptions = {
               role: dbUser.role,
               isActive: dbUser.isActive
             }
+          } else {
+            // 如果沒有 DB 紀錄（例如 DB 寫入失敗），仍可用 env 判斷
+            session.user = {
+              ...session.user,
+              role: (isAdmin(session.user.email) ? 'ADMIN' : 'USER') as Role,
+              isActive: true
+            } as any
           }
         } catch (error) {
           console.error('Error loading user from database:', error)
