@@ -6,7 +6,7 @@
   },
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm ci",
+  "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["hnd1"],
   "env": {
