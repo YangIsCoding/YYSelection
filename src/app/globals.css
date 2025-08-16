@@ -1,0 +1,18 @@
+/* app/globals.css */
+
+@import "tailwindcss";
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background-color: #fafafa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  transition: background-color 0.2s ease-in-out;
+}

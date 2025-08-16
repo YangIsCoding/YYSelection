@@ -1,0 +1,283 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  
+  // Google Auth 基本資訊
+  googleId      String   @unique
+  email         String   @unique
+  name          String
+  image         String?
+  emailVerified Boolean  @default(false)
+  
+  // 擴展資訊
+  firstName     String?
+  lastName      String?
+  locale        String?  @default("zh-TW")
+  
+  // 平台相關
+  role          Role     @default(USER)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+  
+  // 關聯
+  orders          Order[]
+  sentMessages    Message[] @relation("MessageSender")
+  chat            Chat?
+  stockAdjustments StockHistory[] @relation("StockAdjustment")
+  notifications   Notification[]
+  
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  price       Int         // 以分為單位儲存價格
+  description String
+  imageUrl    String?
+  category    String
+  
+  // 庫存管理
+  stock       Int         @default(0)    // 當前庫存
+  minStock    Int         @default(5)    // 最低庫存警戒值
+  isActive    Boolean     @default(true) // 商品是否啟用
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // 關聯
+  orderItems     OrderItem[]
+  stockHistories StockHistory[]
+  images         ProductImage[]
+}
+
+model ProductImage {
+  id          String   @id @default(cuid())
+  productId   String
+  imageUrl    String
+  sortOrder   Int      @default(0)  // 圖片排序順序
+  alt         String?              // 圖片alt文字
+  createdAt   DateTime @default(now())
+  
+  // 關聯
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("product_images")
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  orderNumber   String   @unique // 訂單編號，例如：25080200001
+  
+  // 客戶資訊
+  userId        String
+  customerName  String   // 冗餘儲存，避免使用者改名影響歷史訂單
+  customerEmail String
+  customerPhone String
+  
+  // 訂單狀態
+  status        OrderStatus @default(PAID)
+  paymentStatus PaymentStatus @default(COMPLETED)
+  
+  // 金額資訊
+  totalAmount   Int      // 訂單總金額（分）
+  
+  // 備註資訊
+  customerNote  String?  // 客戶需求備註
+  adminNote     String?  // 管理員內部備註
+  
+  // 時間戳
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // 關聯
+  user          User     @relation(fields: [userId], references: [id])
+  orderItems    OrderItem[]
+  stockHistories StockHistory[]
+  
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  
+  // 關聯資訊
+  orderId   String
+  productId String
+  
+  // 商品資訊（建立時的快照）
+  productName  String  // 商品名稱快照
+  productImage String  // 商品圖片快照
+  unitPrice    Int     // 單價快照（分）
+  quantity     Int     // 數量
+  subtotal     Int     // 小計（分）
+  
+  // 關聯
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+  
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PAID        // 已付款（剛建立）
+  CONFIRMED   // 已確認（管理員確認）
+  PROCESSING  // 採購中
+  SHIPPED     // 已出貨
+  DELIVERED   // 已送達
+  CANCELLED   // 已取消
+}
+
+enum PaymentStatus {
+  COMPLETED   // 已付款（預設）
+  REFUNDED    // 已退款
+}
+
+model Chat {
+  id          String    @id @default(cuid())
+  userId      String    // 客戶 ID
+  adminId     String?   // 管理員 ID（歪歪）
+  
+  // 聊天室狀態
+  isActive    Boolean   @default(true)
+  lastMessageAt DateTime @default(now())
+  
+  // 時間戳
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // 關聯
+  user        User      @relation(fields: [userId], references: [id])
+  messages    Message[]
+  
+  @@unique([userId]) // 每個用戶只有一個聊天室
+  @@map("chats")
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  messageType MessageType @default(TEXT)
+  
+  // 訊息狀態
+  isRead    Boolean     @default(false)
+  readAt    DateTime?
+  
+  // 時間戳
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  
+  // 關聯
+  chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    User        @relation("MessageSender", fields: [senderId], references: [id])
+  
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT        // 純文字
+  IMAGE       // 圖片
+  PRODUCT     // 商品連結
+  ORDER       // 訂單連結
+}
+
+model StockHistory {
+  id        String           @id @default(cuid())
+  productId String
+  
+  // 庫存變更資訊
+  changeType   StockChangeType
+  quantity     Int              // 變更數量（正數為增加，負數為減少）
+  beforeStock  Int              // 變更前庫存
+  afterStock   Int              // 變更後庫存
+  
+  // 變更原因
+  reason       String           // 變更原因描述
+  orderId      String?          // 相關訂單ID（如果是訂單相關）
+  userId       String?          // 操作者ID（管理員調整時）
+  
+  // 時間戳
+  createdAt    DateTime         @default(now())
+  
+  // 關聯
+  product      Product          @relation(fields: [productId], references: [id])
+  user         User?            @relation("StockAdjustment", fields: [userId], references: [id])
+  order        Order?           @relation(fields: [orderId], references: [id])
+  
+  @@map("stock_histories")
+}
+
+enum StockChangeType {
+  ORDER_PLACED    // 訂單成立（減少庫存）
+  ORDER_CANCELLED // 訂單取消（增加庫存）
+  ADMIN_ADJUST    // 管理員調整
+  INITIAL_STOCK   // 初始庫存設定
+  RESTOCK         // 補貨
+}
+
+model Notification {
+  id        String          @id @default(cuid())
+  userId    String
+  
+  // 通知內容
+  type      NotificationType
+  title     String
+  message   String
+  data      String?         // JSON字符串，存放額外的通知數據
+  
+  // 通知狀態
+  isRead    Boolean         @default(false)
+  readAt    DateTime?
+  
+  // 顯示優先級
+  priority  NotificationPriority @default(NORMAL)
+  
+  // 時間戳
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  expiresAt DateTime?       // 通知過期時間
+  
+  // 關聯
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ORDER_STATUS_CHANGED      // 訂單狀態變更
+  ORDER_SHIPPED            // 訂單已出貨
+  ORDER_DELIVERED          // 訂單已送達
+  NEW_MESSAGE              // 新聊天消息
+  LOW_STOCK_WARNING        // 低庫存警告（管理員）
+  OUT_OF_STOCK             // 商品缺貨（管理員）
+  STOCK_RESTOCK            // 商品補貨（管理員）
+  SYSTEM_ANNOUNCEMENT      // 系統公告
+  ACCOUNT_SECURITY         // 帳戶安全
+}
+
+enum NotificationPriority {
+  LOW       // 低優先級
+  NORMAL    // 一般優先級
+  HIGH      // 高優先級
+  URGENT    // 緊急
+}
