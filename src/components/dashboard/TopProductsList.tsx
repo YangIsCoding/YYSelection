@@ -48,9 +48,6 @@ export default function TopProductsList({ products }: TopProductsListProps) {
                     width={48}
                     height={48}
                     className="w-12 h-12 object-cover rounded-lg"
-                    onError={(e) => {
-                      e.currentTarget.src = '/placeholder-image.jpg'
-                    }}
                   />
                 ) : (
                   <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">

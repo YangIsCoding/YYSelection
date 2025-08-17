@@ -281,3 +281,17 @@ enum NotificationPriority {
   HIGH      // 高優先級
   URGENT    // 緊急
 }
+
+model Banner {
+  id          String   @id @default(cuid())
+  title       String   // 廣告標題
+  imageUrl    String   // 圖片URL
+  linkUrl     String?  // 點擊連結（可選）
+  description String?  // 描述文字（可選）
+  sortOrder   Int      @default(0) // 排序順序
+  isActive    Boolean  @default(true) // 是否啟用
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("banners")
+}

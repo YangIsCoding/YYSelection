@@ -52,6 +52,9 @@ export default function Navbar() {
               <Link href="/admin/users" className="text-sm text-gray-600 hover:text-black transition">
                 使用者管理
               </Link>
+              <Link href="/admin/banners" className="text-sm text-gray-600 hover:text-black transition">
+                廣告管理
+              </Link>
             </>
           )}
         </div>

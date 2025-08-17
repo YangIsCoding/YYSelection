@@ -103,7 +103,7 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6 mt-6">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d96c6c] mx-auto mb-4"></div>
           <p className="text-gray-500">載入商品中...</p>
@@ -114,7 +114,7 @@ export default function ProductsPage() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6 mt-6">
         <div className="text-center py-12">
           <p className="text-red-500 mb-4">{error}</p>
           <button
@@ -129,7 +129,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 mt-6">
       {/* 頁面標題 */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">所有商品</h1>
@@ -208,12 +208,17 @@ export default function ProductsPage() {
                   <img
                     src={product.images && product.images.length > 0 
                       ? product.images[0].imageUrl 
-                      : product.imageUrl || 'https://via.placeholder.com/300x300?text=商品圖片'
+                      : product.imageUrl || '/placeholder-product.jpg'
                     }
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=商品圖片'
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      const parent = target.parentElement
+                      if (parent) {
+                        parent.innerHTML = '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400"><span>無法載入圖片</span></div>'
+                      }
                     }}
                   />
                 </div>

@@ -9,7 +9,7 @@ async function main() {
       name: '測試商品',
       price: 100000, // 1000元 = 100000分
       description: '這是一個測試商品的描述',
-      imageUrl: 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=測試商品',
+      imageUrl: 'https://picsum.photos/300/200?random=1',
       category: '測試分類',
       stock: 10,
       minStock: 2,
@@ -19,7 +19,7 @@ async function main() {
       name: '測試多圖',
       price: 200000, // 2000元 = 200000分
       description: '這是一個有多張圖片的測試商品',
-      imageUrl: 'https://via.placeholder.com/300x200/059669/FFFFFF?text=測試多圖',
+      imageUrl: 'https://picsum.photos/300/200?random=2',
       category: '測試分類',
       stock: 5,
       minStock: 1,
