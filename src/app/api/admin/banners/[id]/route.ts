@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 // 更新廣告橫幅
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,8 +17,9 @@ export async function PUT(
 
     const { title, imageUrl, linkUrl, description, sortOrder, isActive } = await req.json()
 
+    const resolvedParams = await params
     const banner = await prisma.banner.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: {
         title,
         imageUrl,
@@ -39,7 +40,7 @@ export async function PUT(
 // 刪除廣告橫幅
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -48,8 +49,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const resolvedParams = await params
     await prisma.banner.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     return NextResponse.json({ message: 'Banner deleted successfully' })
