@@ -80,30 +80,47 @@ export default function BannerCarousel() {
   const currentBanner = banners[currentIndex]
 
   const BannerContent = ({ banner }: { banner: Banner }) => (
-    <div className="relative w-full h-[500px] overflow-hidden rounded-lg shadow-lg">
-      <img
-        src={banner.imageUrl}
-        alt={banner.title}
-        className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
-      />
-      {/* 覆蓋層 */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+    <div className="flex w-full h-[600px] bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* 左側圖片 */}
+      <div className="relative w-1/2 h-full overflow-hidden">
+        <img
+          src={banner.imageUrl}
+          alt={banner.title}
+          className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
+        />
+      </div>
       
-      {/* 標題和描述 */}
-      {(banner.title || banner.description) && (
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-          {banner.title && (
-            <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
-              {banner.title}
-            </h3>
-          )}
-          {banner.description && (
-            <p className="text-gray-200 drop-shadow-lg line-clamp-2">
-              {banner.description}
-            </p>
-          )}
-        </div>
-      )}
+      {/* 右側內容 */}
+      <div className="w-1/2 h-full flex flex-col justify-center p-8 lg:p-12">
+        {banner.title && (
+          <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+            {banner.title}
+          </h3>
+        )}
+        {banner.description && (
+          <p className="text-lg lg:text-xl text-gray-600 leading-relaxed mb-8">
+            {banner.description}
+          </p>
+        )}
+        {banner.linkUrl && (
+          <div>
+            <a
+              href={banner.linkUrl}
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
+            >
+              了解更多
+              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </div>
+        )}
+        {!banner.title && !banner.description && (
+          <div className="text-center">
+            <p className="text-gray-500 text-lg">精選廣告內容</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 
@@ -113,13 +130,7 @@ export default function BannerCarousel() {
         <div className="relative">
           {/* 主要輪播區域 */}
           <div className="relative overflow-hidden rounded-lg">
-            {currentBanner.linkUrl ? (
-              <Link href={currentBanner.linkUrl} className="block">
-                <BannerContent banner={currentBanner} />
-              </Link>
-            ) : (
-              <BannerContent banner={currentBanner} />
-            )}
+            <BannerContent banner={currentBanner} />
           </div>
 
           {/* 導航按鈕 - 只有多張圖片時顯示 */}
