@@ -5,10 +5,6 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    console.log('API: Starting to fetch products...')
-    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
-    console.log('Environment:', process.env.NODE_ENV)
-    
     const products = await prisma.product.findMany({
       include: {
         images: {
@@ -21,13 +17,9 @@ export async function GET() {
       }
     })
     
-    console.log('API: Found products:', products.length)
     return NextResponse.json(products)
   } catch (error) {
-    console.error('Error fetching products - Full error:', error)
-    console.error('Error name:', (error as any)?.name)
-    console.error('Error message:', (error as any)?.message)
-    console.error('Error stack:', (error as any)?.stack)
+    console.error('Error fetching products:', error)
     
     return NextResponse.json(
       { 
