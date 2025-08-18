@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Product } from '@/app/types/product'
 import ImageGallery from '@/app/components/ImageGallery'
+import WishlistButton from '@/components/WishlistButton'
+import ProductReviews from '@/components/ProductReviews'
 
 interface ProductPageProps {
   params: Promise<{ id: string }>
@@ -252,6 +254,18 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
 
           {/* 行動按鈕 */}
           <div className="border-t pt-6 space-y-4">
+            {/* 願望清單按鈕 */}
+            <div className="flex items-center justify-between mb-4">
+              <WishlistButton 
+                productId={product.id}
+                variant="button"
+                className="flex-1 mr-2"
+              />
+              <div className="text-sm text-gray-500">
+                ❤️ 加入願望清單
+              </div>
+            </div>
+
             <button
               onClick={handleChatWithYaYa}
               className="w-full bg-[#d96c6c] hover:bg-[#c55b5b] text-white py-3 px-6 rounded-lg font-medium transition flex items-center justify-center space-x-2"
@@ -267,6 +281,11 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 商品評價區域 */}
+      <div className="border-t pt-12 mb-12">
+        <ProductReviews productId={product.id} />
       </div>
 
       {/* 相關商品推薦 */}

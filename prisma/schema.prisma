@@ -38,6 +38,8 @@ model User {
   chat            Chat?
   stockAdjustments StockHistory[] @relation("StockAdjustment")
   notifications   Notification[]
+  reviews         Review[]
+  wishlist        Wishlist[]
   
   @@map("users")
 }
@@ -67,6 +69,8 @@ model Product {
   orderItems     OrderItem[]
   stockHistories StockHistory[]
   images         ProductImage[]
+  reviews        Review[]
+  wishlist       Wishlist[]
 }
 
 model ProductImage {
@@ -294,4 +298,36 @@ model Banner {
   updatedAt   DateTime @updatedAt
 
   @@map("banners")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  rating      Int      // 1-5 stars
+  comment     String?
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // 每個用戶對每個商品只能評價一次
+  @@map("reviews")
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  addedAt   DateTime @default(now())
+
+  // 關聯
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // 每個用戶對每個商品只能收藏一次
+  @@map("wishlist")
 }

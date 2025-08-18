@@ -15,7 +15,7 @@ export default function Navbar() {
         {/* 左側 Logo + 導覽連結 */}
         <div className="flex gap-6 items-center">
           <Link href="/" className="text-xl font-semibold text-gray-800">
-            YYSelction
+            YY
           </Link>
           <Link href="/products" className="text-sm text-gray-600 hover:text-black transition">
             所有商品
@@ -28,6 +28,9 @@ export default function Navbar() {
               </Link>
               <Link href="/chat" className="text-sm text-gray-600 hover:text-black transition">
                 我的對話
+              </Link>
+              <Link href="/wishlist" className="text-sm text-gray-600 hover:text-black transition">
+                願望清單
               </Link>
             </>
           )}

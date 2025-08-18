@@ -8,7 +8,7 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'YYSelction',
+  title: 'YYSelection',
   description: '由歪歪與 Pin-Yang 打造的簡易代購平台',
 }
 

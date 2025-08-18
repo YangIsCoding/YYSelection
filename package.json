@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 3002",
     "build": "prisma generate && next build --no-lint",
     "start": "next start",
     "postinstall": "prisma generate",
@@ -12,7 +12,13 @@
     "db:backup": "./scripts/backup-db.sh",
     "db:restore": "./scripts/restore-db.sh",
     "db:status": "node scripts/check-migration-status.js",
-    "db:migrate:prod": "npx prisma migrate deploy"
+    "db:migrate:prod": "npx prisma migrate deploy",
+    "db:sync:pull": "tsx scripts/db-sync.ts pull",
+    "db:sync:push": "tsx scripts/db-sync.ts push",
+    "db:sync:status": "tsx scripts/db-status.ts",
+    "db:setup:local": "npx prisma migrate dev --name init && npx prisma db push",
+    "db:reset:local": "rm -f prisma/dev.db && npm run db:setup:local",
+    "dev:local": "cp .env.local.example .env.local && npm run db:setup:local && npm run dev"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

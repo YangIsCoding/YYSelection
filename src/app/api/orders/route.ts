@@ -192,14 +192,15 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // 扣減庫存
+      // 扣減庫存（在同一個事務中）
       await processOrderStock(
         newOrder.id,
         orderItems.map((item: any) => ({
           productId: item.productId,
           quantity: item.quantity
         })),
-        'place'
+        'place',
+        tx // 傳入事務對象
       )
 
       return newOrder

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Product } from '@/app/types/product'
+import WishlistButton from '@/components/WishlistButton'
 
 export default function ProductsPage() {
   const { data: session } = useSession()
@@ -239,12 +240,18 @@ export default function ProductsPage() {
                   <p className="text-[#d96c6c] font-bold text-lg">
                     NT$ {product.price.toLocaleString()}
                   </p>
-                  <button 
-                    onClick={() => handleChatWithYaYa(product)}
-                    className="text-white bg-[#d96c6c] hover:bg-[#c55b5b] px-3 py-1 rounded text-sm transition"
-                  >
-                    私訊歪歪
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <WishlistButton 
+                      productId={product.id}
+                      variant="icon"
+                    />
+                    <button 
+                      onClick={() => handleChatWithYaYa(product)}
+                      className="text-white bg-[#d96c6c] hover:bg-[#c55b5b] px-3 py-1 rounded text-sm transition"
+                    >
+                      私訊歪歪
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

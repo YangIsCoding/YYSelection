@@ -62,7 +62,8 @@ export default function HomePage() {
           <div className="text-center">
             <div className="inline-flex items-center px-4 py-2 bg-rose-500/20 rounded-full border border-rose-500/30 mb-8">
               <span className="text-yellow-400 mr-2">⭐</span>
-              <span className="text-sm font-medium text-gray-200">專業代購 • 精選商品 • 一對一服務</span>
+              <span className="text-sm font-medium text-gray-200">讓我來給你一對一服務</span>
+              <span className="text-yellow-400 mr-2">⭐</span>
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold mb-8 leading-tight">
               <span className="text-white">
@@ -74,8 +75,8 @@ export default function HomePage() {
               </span>
             </h1>
             <p className="text-xl lg:text-2xl mb-12 max-w-4xl mx-auto leading-relaxed text-gray-300">
-              由專業代購達人「歪歪」為您精選世界各地的優質商品，<br />
-              提供個人化專屬服務，讓您輕鬆購買心儀商品
+              由代購達人「歪歪」為您精選世界各地的優質商品，<br />
+              每封私訊都由「真人」與您對話，讓您輕鬆購買心儀商品
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <button
@@ -225,10 +226,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6">關於歪歪</h3>
-              <p className="text-gray-700 leading-relaxed text-lg mb-6">
-                歪歪是一位經驗豐富的代購專家，擁有多年的國際採購經驗。
-                她專門為客戶尋找高品質、具有性價比的商品，
-                並提供專業的購買建議和貼心的服務。
+              <p className="text-gray-700 leading-relaxed text-lg mb-6" suppressHydrationWarning>
+                歪歪是一位沒什麼特別的留學生，他在世界各地看見了許多奇珍異寶。
+                她最喜歡尋找高品質、具有性價比的商品。
+                在台灣，他創立YY選物，開始他的旅程。
               </p>
               <div className="flex items-center text-gray-600">
                 <span className="text-rose-500 mr-2">📍</span>
