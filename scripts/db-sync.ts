@@ -6,9 +6,9 @@ import { PrismaClient } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
 
-// Neon PostgreSQL 連接
+// Neon PostgreSQL 連接（從環境變數讀取）
 const neonPrisma = new PrismaClient({
-  datasourceUrl: "postgresql://neondb_owner:npg_y1HIV7lQUKCq@ep-purple-shape-aebomfjn-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+  datasourceUrl: process.env.DATABASE_URL
 })
 
 // 本地 SQLite 連接  
