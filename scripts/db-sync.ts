@@ -97,14 +97,14 @@ async function pullFromNeon() {
   
   // 5. 同步訂單
   const neonOrders = await neonPrisma.order.findMany({ 
-    include: { items: true } 
+    include: { orderItems: true } 
   })
   for (const order of neonOrders) {
-    const { items, ...orderData } = order
+    const { orderItems, ...orderData } = order
     const createdOrder = await localPrisma.order.create({ data: orderData })
     
     // 同步訂單項目
-    for (const item of items) {
+    for (const item of orderItems) {
       await localPrisma.orderItem.create({
         data: {
           ...item,
