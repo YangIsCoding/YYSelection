@@ -26,17 +26,36 @@ export default function MultiImageUpload({
 }: MultiImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // 處理文件選擇
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    
-    if (files.length === 0) return
+  // 驗證文件
+  const validateFiles = (files: File[]) => {
+    if (files.length === 0) return { valid: false, error: null }
 
     // 檢查圖片數量限制
     if (images.length + files.length > maxImages) {
-      setError(`最多只能上傳 ${maxImages} 張圖片`)
+      return { valid: false, error: `最多只能上傳 ${maxImages} 張圖片` }
+    }
+
+    // 檢查文件類型和大小
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        return { valid: false, error: '只能上傳圖片文件' }
+      }
+      if (file.size > maxFileSize * 1024 * 1024) {
+        return { valid: false, error: `文件大小不能超過 ${maxFileSize}MB` }
+      }
+    }
+
+    return { valid: true, error: null }
+  }
+
+  // 處理文件上傳（通用函數）
+  const handleFilesUpload = async (files: File[]) => {
+    const validation = validateFiles(files)
+    if (!validation.valid) {
+      setError(validation.error)
       return
     }
 
@@ -85,6 +104,34 @@ export default function MultiImageUpload({
         fileInputRef.current.value = ''
       }
     }
+  }
+
+  // 處理文件選擇
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    await handleFilesUpload(files)
+  }
+
+  // 處理拖曳事件
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    await handleFilesUpload(files)
   }
 
   // 刪除圖片
@@ -240,15 +287,43 @@ export default function MultiImageUpload({
           ))}
         </div>
       ) : (
-        /* 空狀態 */
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        /* 空狀態 - 支援拖曳上傳 */
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+            isDragOver
+              ? 'border-blue-400 bg-blue-50'
+              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+          } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+        >
+          <svg className={`w-12 h-12 mx-auto mb-4 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <p className="text-gray-500 mb-2">尚未上傳圖片</p>
-          <p className="text-sm text-gray-400">
-            支援 JPEG、PNG、WebP 格式，單檔最大 {maxFileSize}MB
-          </p>
+          {isDragOver ? (
+            <div>
+              <p className="text-blue-600 mb-2 font-medium">放開以上傳圖片</p>
+              <p className="text-sm text-blue-500">
+                支援多張圖片同時上傳
+              </p>
+            </div>
+          ) : uploading ? (
+            <div>
+              <p className="text-gray-500 mb-2">上傳中...</p>
+              <p className="text-sm text-gray-400">
+                請稍候，正在處理您的圖片
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-gray-500 mb-2">拖曳圖片到此處，或點擊上傳</p>
+              <p className="text-sm text-gray-400">
+                支援 JPEG、PNG、WebP 格式，單檔最大 {maxFileSize}MB
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -258,6 +333,7 @@ export default function MultiImageUpload({
         <p>• 支援格式：JPEG、PNG、WebP</p>
         <p>• 單檔大小限制：{maxFileSize}MB</p>
         <p>• 圖片總數限制：{maxImages}張</p>
+        <p>• 支援拖曳上傳：將圖片拖拽到上傳區域即可</p>
         <p>• 可拖拽排序或使用箭頭按鈕調整順序</p>
       </div>
     </div>

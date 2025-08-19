@@ -167,18 +167,31 @@ export default function BannersPage() {
   const handleFileUpload = async (file: File) => {
     setUploading(true)
     try {
-      // 這裡可以實作檔案上傳到雲端服務的邏輯
-      // 暫時使用 FileReader 轉為 base64 作為示例
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setFormData(prev => ({ ...prev, imageUrl: result }))
-        setUploading(false)
+      // 創建FormData上傳檔案
+      const formData = new FormData()
+      formData.append('files', file)
+
+      // 上傳圖片到 /api/upload
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (result.success && result.uploadedFiles && result.uploadedFiles.length > 0) {
+        // 使用上傳後的 URL
+        setFormData(prev => ({ 
+          ...prev, 
+          imageUrl: result.uploadedFiles[0].url 
+        }))
+      } else {
+        throw new Error(result.error || '上傳失敗')
       }
-      reader.readAsDataURL(file)
     } catch (error) {
       console.error('File upload error:', error)
-      alert('檔案上傳失敗')
+      alert(`檔案上傳失敗：${error instanceof Error ? error.message : '未知錯誤'}`)
+    } finally {
       setUploading(false)
     }
   }
