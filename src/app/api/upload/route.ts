@@ -23,6 +23,18 @@ export async function POST(request: NextRequest) {
     console.log('=== 開始圖片上傳請求 ===')
     console.log('環境:', process.env.NODE_ENV)
     
+    // 檢測 Vercel 生產環境
+    const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
+    
+    if (isVercel) {
+      console.log('🚫 Vercel 環境不支援檔案上傳')
+      return NextResponse.json({ 
+        error: '生產環境不支援拖曳上傳',
+        message: '請使用網址輸入方式，或在本地開發環境測試上傳功能',
+        isProductionEnvironment: true
+      }, { status: 400 })
+    }
+    
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'ADMIN') {
       console.log('權限檢查失敗:', session?.user?.role)

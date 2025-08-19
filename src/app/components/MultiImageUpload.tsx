@@ -28,6 +28,9 @@ export default function MultiImageUpload({
   const [error, setError] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // 檢測是否為生產環境
+  const isProduction = process.env.NODE_ENV === 'production'
 
   // 驗證文件
   const validateFiles = (files: File[]) => {
@@ -87,7 +90,12 @@ export default function MultiImageUpload({
 
         onChange([...images, ...newImages])
       } else {
-        setError(result.error || '上傳失敗')
+        // 特別處理生產環境錯誤
+        if (result.isProductionEnvironment) {
+          setError(`${result.error}\n${result.message}`)
+        } else {
+          setError(result.error || '上傳失敗')
+        }
       }
 
       // 如果有錯誤，顯示錯誤信息
@@ -181,10 +189,15 @@ export default function MultiImageUpload({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm transition"
+            disabled={uploading || isProduction}
+            className={`px-4 py-2 rounded text-sm transition ${
+              isProduction 
+                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white'
+            }`}
+            title={isProduction ? '生產環境不支援檔案上傳，請使用網址' : undefined}
           >
-            {uploading ? '上傳中...' : '選擇圖片'}
+            {isProduction ? '僅支援網址' : (uploading ? '上傳中...' : '選擇圖片')}
           </button>
         )}
       </div>
@@ -289,20 +302,35 @@ export default function MultiImageUpload({
       ) : (
         /* 空狀態 - 支援拖曳上傳 */
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-            isDragOver
-              ? 'border-blue-400 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            isProduction
+              ? 'border-orange-300 bg-orange-50 cursor-not-allowed'
+              : `cursor-pointer ${
+                  isDragOver
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                }`
           } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => !uploading && fileInputRef.current?.click()}
+          onDragOver={!isProduction ? handleDragOver : undefined}
+          onDragLeave={!isProduction ? handleDragLeave : undefined}
+          onDrop={!isProduction ? handleDrop : undefined}
+          onClick={() => !uploading && !isProduction && fileInputRef.current?.click()}
         >
           <svg className={`w-12 h-12 mx-auto mb-4 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          {isDragOver ? (
+          {isProduction ? (
+            <div>
+              <p className="text-orange-600 mb-2 font-medium">⚠️ 生產環境限制</p>
+              <p className="text-sm text-orange-700 mb-3">
+                Vercel 不支援檔案上傳，請使用以下方式：
+              </p>
+              <div className="text-sm text-orange-600 space-y-1">
+                <p>🔗 直接輸入圖片網址</p>
+                <p>📁 或先將圖片加入 GitHub 後使用</p>
+              </div>
+            </div>
+          ) : isDragOver ? (
             <div>
               <p className="text-blue-600 mb-2 font-medium">放開以上傳圖片</p>
               <p className="text-sm text-blue-500">
@@ -333,8 +361,17 @@ export default function MultiImageUpload({
         <p>• 支援格式：JPEG、PNG、WebP</p>
         <p>• 單檔大小限制：{maxFileSize}MB</p>
         <p>• 圖片總數限制：{maxImages}張</p>
-        <p>• 支援拖曳上傳：將圖片拖拽到上傳區域即可</p>
-        <p>• 可拖拽排序或使用箭頭按鈕調整順序</p>
+        {isProduction ? (
+          <>
+            <p className="text-orange-600">• ⚠️ 生產環境不支援檔案上傳</p>
+            <p className="text-orange-600">• 請直接輸入圖片網址或使用 GitHub 管理圖片</p>
+          </>
+        ) : (
+          <>
+            <p>• 支援拖曳上傳：將圖片拖拽到上傳區域即可</p>
+            <p>• 可拖拽排序或使用箭頭按鈕調整順序</p>
+          </>
+        )}
       </div>
     </div>
   )
