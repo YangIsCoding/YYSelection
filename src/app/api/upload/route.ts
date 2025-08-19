@@ -91,10 +91,20 @@ async function fallbackLocalUpload(files: File[]) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== 開始圖片上傳請求 ===')
+    console.log('環境:', process.env.NODE_ENV)
+    console.log('Cloudinary 設定檢查:')
+    console.log('- CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? '已設定' : '未設定')
+    console.log('- API_KEY:', process.env.CLOUDINARY_API_KEY ? '已設定' : '未設定') 
+    console.log('- API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '已設定' : '未設定')
+    
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'ADMIN') {
+      console.log('權限檢查失敗:', session?.user?.role)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    
+    console.log('權限檢查通過')
 
     const formData = await request.formData()
     
@@ -114,11 +124,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (files.length === 0) {
+      console.log('錯誤: 沒有檔案上傳')
       return NextResponse.json({ error: 'No files uploaded' }, { status: 400 })
     }
 
+    console.log(`檔案數量: ${files.length}`)
+
     // 檢查文件數量限制
     if (files.length > MAX_FILES) {
+      console.log(`錯誤: 檔案數量超過限制 (${files.length} > ${MAX_FILES})`)
       return NextResponse.json(
         { error: `Too many files. Maximum ${MAX_FILES} files allowed.` },
         { status: 400 }
@@ -127,9 +141,11 @@ export async function POST(request: NextRequest) {
 
     // 檢查 Cloudinary 設定
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      // 如果沒有 Cloudinary 設定，使用本地上傳作為後備方案
+      console.log('Cloudinary 設定不完整，使用本地上傳')
       return await fallbackLocalUpload(files)
     }
+    
+    console.log('使用 Cloudinary 上傳')
 
     const uploadResults = []
     const errors = []
@@ -158,12 +174,16 @@ export async function POST(request: NextRequest) {
         const base64Data = buffer.toString('base64')
         const dataURI = `data:${file.type};base64,${base64Data}`
 
+        console.log(`開始上傳檔案 ${i + 1}: ${file.name} (${file.size} bytes)`)
+        
         // 上傳到 Cloudinary
         const result = await cloudinary.uploader.upload(dataURI, {
           folder: 'yyselection/products',
           resource_type: 'image',
           public_id: `product_${Date.now()}_${i}`,
         })
+
+        console.log(`檔案 ${i + 1} 上傳成功:`, result.secure_url)
 
         uploadResults.push({
           success: true,
@@ -175,8 +195,15 @@ export async function POST(request: NextRequest) {
           index: i
         })
       } catch (fileError) {
-        console.error(`Error uploading file ${i + 1}:`, fileError)
-        errors.push(`File ${i + 1}: Failed to upload`)
+        console.error(`檔案 ${i + 1} 上傳失敗:`, fileError)
+        if (fileError instanceof Error) {
+          console.error('錯誤詳情:', {
+            message: fileError.message,
+            stack: fileError.stack,
+            name: fileError.name
+          })
+        }
+        errors.push(`File ${i + 1}: Failed to upload - ${fileError instanceof Error ? fileError.message : '未知錯誤'}`)
       }
     }
 
@@ -189,14 +216,28 @@ export async function POST(request: NextRequest) {
       totalErrors: errors.length
     }
 
+    console.log('上傳結果:', {
+      成功: uploadResults.length,
+      失敗: errors.length,
+      總計: files.length
+    })
+
     // 如果有成功上傳的文件，回傳200，否則回傳400
     const statusCode = uploadResults.length > 0 ? 200 : 400
 
     return NextResponse.json(response, { status: statusCode })
   } catch (error) {
-    console.error('Error uploading files:', error)
+    console.error('=== 上傳過程發生嚴重錯誤 ===')
+    console.error('錯誤:', error)
+    if (error instanceof Error) {
+      console.error('錯誤詳情:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+    }
     return NextResponse.json(
-      { error: 'Failed to upload files' },
+      { error: 'Failed to upload files', details: error instanceof Error ? error.message : '未知錯誤' },
       { status: 500 }
     )
   }
