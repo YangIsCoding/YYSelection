@@ -97,6 +97,9 @@ model Order {
   customerEmail String
   customerPhone String
   
+  // 送貨地址
+  shippingAddress String? // 收貨地址
+  
   // 訂單狀態
   status        OrderStatus @default(PAID)
   paymentStatus PaymentStatus @default(COMPLETED)

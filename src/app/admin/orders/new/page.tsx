@@ -30,6 +30,7 @@ export default function NewOrderPage() {
   // 表單狀態
   const [selectedUserId, setSelectedUserId] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+  const [shippingAddress, setShippingAddress] = useState('')
   const [customerNote, setCustomerNote] = useState('')
   const [adminNote, setAdminNote] = useState('')
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
@@ -142,6 +143,7 @@ export default function NewOrderPage() {
         body: JSON.stringify({
           userId: selectedUserId,
           customerPhone,
+          shippingAddress: shippingAddress || undefined,
           customerNote: customerNote || undefined,
           adminNote: adminNote || undefined,
           orderItems: orderItems.map(item => ({
@@ -228,6 +230,19 @@ export default function NewOrderPage() {
                 required
               />
             </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              收貨地址
+            </label>
+            <input
+              type="text"
+              value={shippingAddress}
+              onChange={(e) => setShippingAddress(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d96c6c] focus:border-transparent"
+              placeholder="請輸入詳細收貨地址"
+            />
           </div>
         </div>
 

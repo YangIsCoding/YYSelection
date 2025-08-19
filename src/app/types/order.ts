@@ -20,6 +20,9 @@ export interface Order {
   customerEmail: string
   customerPhone: string
   
+  // 送貨地址
+  shippingAddress?: string
+  
   // 狀態
   status: OrderStatus
   paymentStatus: PaymentStatus
@@ -48,6 +51,7 @@ export interface Order {
 export interface CreateOrderRequest {
   userId: string
   customerPhone: string
+  shippingAddress?: string
   customerNote?: string
   adminNote?: string
   orderItems: {
@@ -60,6 +64,7 @@ export interface UpdateOrderRequest {
   status?: OrderStatus
   paymentStatus?: PaymentStatus
   customerPhone?: string
+  shippingAddress?: string
   customerNote?: string
   adminNote?: string
 }
