@@ -50,7 +50,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div className="marquee-container overflow-hidden">
             <div className="marquee-content inline-block animate-marquee whitespace-nowrap">
-              🎉 全館95折優惠中！ ✨ 新品限時7折！ 🎁 累積訂單滿5單送精美好禮！ 📦 免運費優惠進行中！ 🔥 VIP會員專享額外折扣！ 💎 推薦朋友購買雙方都有優惠！
+              ✨ 全館95折優惠中！ ✨ 新品限時7折！ ✨ 累積訂單滿5單送精美好禮！ ✨ 免運費優惠進行中！ ✨ VIP會員專享額外折扣！ ✨ 推薦朋友購買雙方都有優惠！
             </div>
           </div>
         </div>
