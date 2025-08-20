@@ -1,47 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { v4 as uuidv4 } from 'uuid'
-import { existsSync } from 'fs'
+import { put } from '@vercel/blob'
 
 // 支援的圖片格式
 const SUPPORTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const MAX_FILES = 10 // 最多10張圖片
 
-// 建立上傳目錄
-async function ensureUploadDir(dir: string) {
-  if (!existsSync(dir)) {
-    await mkdir(dir, { recursive: true })
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== 開始圖片上傳請求 ===')
+    console.log('=== 開始 Vercel Blob 圖片上傳 ===')
     console.log('環境:', process.env.NODE_ENV)
     
-    // 檢測 Vercel 生產環境
-    const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
-    
-    if (isVercel) {
-      console.log('🚫 Vercel 環境不支援檔案上傳')
-      return NextResponse.json({ 
-        error: '生產環境不支援拖曳上傳',
-        message: '請使用網址輸入方式，或在本地開發環境測試上傳功能',
-        isProductionEnvironment: true
-      }, { status: 400 })
-    }
-    
+    // 檢查權限
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'ADMIN') {
       console.log('權限檢查失敗:', session?.user?.role)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
-    console.log('權限檢查通過，使用本地檔案上傳')
+    console.log('權限檢查通過，使用 Vercel Blob 上傳')
 
     const formData = await request.formData()
     
@@ -78,10 +57,6 @@ export async function POST(request: NextRequest) {
 
     const uploadResults = []
     const errors = []
-    
-    // 確保上傳目錄存在
-    const uploadDir = join(process.cwd(), 'public', 'uploads')
-    await ensureUploadDir(uploadDir)
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
@@ -101,34 +76,35 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // 產生唯一檔名
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        
+        // 產生有意義的檔名
         const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-        const fileName = `${uuidv4()}.${fileExtension}`
+        const timestamp = Date.now()
+        const randomSuffix = Math.random().toString(36).substring(7)
+        const fileName = `${timestamp}-${randomSuffix}.${fileExtension}`
         
-        // 儲存檔案
-        const filePath = join(uploadDir, fileName)
-        await writeFile(filePath, buffer)
+        // 上傳到 Vercel Blob
+        console.log(`上傳到 Vercel Blob: ${fileName}`)
+        const blob = await put(fileName, file, {
+          access: 'public',
+          addRandomSuffix: false // 我們已經自己加了隨機後綴
+        })
 
-        console.log(`檔案 ${i + 1} 儲存成功: ${fileName}`)
-
-        // 回傳可訪問的URL
-        const fileUrl = `/uploads/${fileName}`
+        console.log(`檔案 ${i + 1} 上傳成功: ${blob.url}`)
 
         uploadResults.push({
           success: true,
-          url: fileUrl,
-          fileName,
+          url: blob.url,
+          fileName: fileName,
           originalName: file.name,
           size: file.size,
           type: file.type,
-          index: i
+          index: i,
+          blobUrl: blob.url // Vercel Blob 的完整 URL
         })
       } catch (fileError) {
         console.error(`檔案 ${i + 1} 處理失敗:`, fileError)
-        errors.push(`File ${i + 1}: Failed to upload - ${fileError instanceof Error ? fileError.message : '未知錯誤'}`)
+        const errorMessage = fileError instanceof Error ? fileError.message : '未知錯誤'
+        errors.push(`File ${i + 1}: Failed to upload - ${errorMessage}`)
       }
     }
 
@@ -138,10 +114,11 @@ export async function POST(request: NextRequest) {
       uploadedFiles: uploadResults,
       errors: errors.length > 0 ? errors : undefined,
       totalUploaded: uploadResults.length,
-      totalErrors: errors.length
+      totalErrors: errors.length,
+      storage: 'vercel-blob'
     }
 
-    console.log('上傳結果:', {
+    console.log('Vercel Blob 上傳結果:', {
       成功: uploadResults.length,
       失敗: errors.length,
       總計: files.length
@@ -152,10 +129,20 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: statusCode })
   } catch (error) {
-    console.error('=== 上傳過程發生嚴重錯誤 ===')
+    console.error('=== Vercel Blob 上傳過程發生嚴重錯誤 ===')
     console.error('錯誤:', error)
+    
+    // 特別處理 Vercel Blob 相關錯誤
+    let errorMessage = 'Failed to upload files'
+    let details = error instanceof Error ? error.message : '未知錯誤'
+    
+    if (details.includes('BLOB_READ_WRITE_TOKEN')) {
+      errorMessage = 'Vercel Blob 未設定'
+      details = '請在 Vercel Dashboard 中設定 BLOB_READ_WRITE_TOKEN 環境變數'
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to upload files', details: error instanceof Error ? error.message : '未知錯誤' },
+      { error: errorMessage, details, storage: 'vercel-blob' },
       { status: 500 }
     )
   }
