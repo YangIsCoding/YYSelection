@@ -126,10 +126,10 @@ https://xxx.public.blob.vercel-storage.com/檔案名-隨機ID.jpg
 ### 小型電商預估費用
 - **圖片儲存**：約 1-5GB → $0.02-0.12/月
 - **流量傳輸**：約 10-50GB → $0.50-2.50/月
-- **總計預估**：$1-5/月
+- **總計預估**：$1-5/月 
 
 相比其他方案（Cloudinary $99/月），Vercel Blob 非常經濟實惠！
-
+ d
 ## 📞 支援資源
 
 - **Vercel Blob 文檔**：[vercel.com/docs/storage/vercel-blob](https://vercel.com/docs/storage/vercel-blob)
