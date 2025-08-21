@@ -17,7 +17,12 @@ interface Product {
   description: string
   price: number
   imageUrl: string | null
-  images?: any[]
+  images?: Array<{
+    id: string
+    imageUrl: string
+    alt: string | null
+    sortOrder: number
+  }>
   category: string
   stock: number
   isActive: boolean
@@ -83,7 +88,12 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       setProduct(data)
       
       // 轉換圖片數據格式
-      const images = data.images ? data.images.map((img: any) => ({
+      const images = data.images ? data.images.map((img: {
+        id: string
+        imageUrl: string
+        alt: string | null
+        sortOrder: number
+      }) => ({
         url: img.imageUrl,
         alt: img.alt || '',
         sortOrder: img.sortOrder

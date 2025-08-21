@@ -60,15 +60,67 @@ interface DashboardStats {
 interface QuickActions {
   pendingOrders: {
     count: number
-    orders: Array<any>
+    orders: Array<{
+      id: string
+      orderNumber: string
+      totalAmount: number
+      status: string
+      createdAt: string
+      user: {
+        id: string
+        name: string
+        email: string
+        image: string | null
+      }
+      _count: {
+        orderItems: number
+      }
+      orderItems: Array<{
+        id: string
+        productName: string
+        unitPrice: number
+        quantity: number
+        subtotal: number
+        product: {
+          id: string
+          name: string
+          imageUrl: string | null
+        }
+      }>
+    }>
   }
   unreadChats: {
     count: number
-    chats: Array<any>
+    chats: Array<{
+      id: string
+      userId: string
+      user: {
+        id: string
+        name: string
+        email: string
+        image: string | null
+      }
+      lastMessageAt: string
+      isActive: boolean
+      latestMessage: {
+        id: string
+        content: string
+        createdAt: string
+        messageType: string
+      } | null
+      unreadCount: number
+    }>
   }
   lowStockProducts: {
     count: number
-    products: Array<any>
+    products: Array<{
+      id: string
+      name: string
+      stock: number
+      minStock: number
+      imageUrl: string | null
+      category: string
+    }>
   }
   systemStatus: {
     totalPendingActions: number

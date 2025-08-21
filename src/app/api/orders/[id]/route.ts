@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { OrderStatus, PaymentStatus } from '@prisma/client'
 
 // 獲取單一訂單詳情
 export async function GET(
@@ -54,7 +55,7 @@ export async function GET(
     const orderWithDisplayPrice = {
       ...order,
       totalAmount: order.totalAmount / 100,
-      orderItems: order.orderItems.map(item => ({
+      orderItems: order.orderItems.map((item: { id: string; unitPrice: number; subtotal: number; productName: string; productImage: string; quantity: number; orderId: string; productId: string }) => ({
         ...item,
         unitPrice: item.unitPrice / 100,
         subtotal: item.subtotal / 100
@@ -88,7 +89,13 @@ export async function PUT(
     const { status, paymentStatus, customerPhone, customerNote, adminNote } = body
 
     // 建立更新資料物件
-    const updateData: any = {}
+    const updateData: {
+      status?: OrderStatus
+      paymentStatus?: PaymentStatus
+      customerPhone?: string
+      customerNote?: string
+      adminNote?: string
+    } = {}
     if (status !== undefined) updateData.status = status
     if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus
     if (customerPhone !== undefined) updateData.customerPhone = customerPhone
@@ -126,7 +133,7 @@ export async function PUT(
     const orderWithDisplayPrice = {
       ...order,
       totalAmount: order.totalAmount / 100,
-      orderItems: order.orderItems.map(item => ({
+      orderItems: order.orderItems.map((item: { id: string; unitPrice: number; subtotal: number; productName: string; productImage: string; quantity: number; orderId: string; productId: string }) => ({
         ...item,
         unitPrice: item.unitPrice / 100,
         subtotal: item.subtotal / 100
@@ -136,7 +143,7 @@ export async function PUT(
     return NextResponse.json(orderWithDisplayPrice)
   } catch (error) {
     console.error('Error updating order:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
     return NextResponse.json(
@@ -166,7 +173,7 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting order:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
     return NextResponse.json(

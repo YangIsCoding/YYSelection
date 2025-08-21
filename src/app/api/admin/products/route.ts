@@ -18,7 +18,13 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || ''
     const skip = (page - 1) * limit
 
-    const whereClause: any = {}
+    const whereClause: {
+      OR?: Array<{
+        name?: { contains: string; mode: 'insensitive' }
+        description?: { contains: string; mode: 'insensitive' }
+      }>
+      category?: string
+    } = {}
     if (search) {
       whereClause.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -137,11 +143,11 @@ export async function POST(request: NextRequest) {
 
       // 創建圖片記錄
       if (images.length > 0) {
-        const imageData = images.map((img: any, index: number) => ({
+        const imageData = images.map((img: string | { url?: string; imageUrl?: string; alt?: string }, index: number) => ({
           productId: newProduct.id,
-          imageUrl: img.url || img.imageUrl || img,
+          imageUrl: typeof img === 'string' ? img : (img.url || img.imageUrl || ''),
           sortOrder: index,
-          alt: img.alt || null
+          alt: typeof img === 'string' ? null : (img.alt || null)
         }))
 
         await tx.productImage.createMany({

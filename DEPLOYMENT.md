@@ -67,7 +67,7 @@ git push -u origin main
    - 應用程式類型：網頁應用程式
    - 授權重新導向 URI：
      - `https://your-domain.vercel.app/api/auth/callback/google`
-     - `http://localhost:3000/api/auth/callback/google` (開發用)
+     - `http://localhost:3002/api/auth/callback/google` (開發用)
 5. 記錄 Client ID 和 Client Secret
 
 ### 步驟 4: 部署到 Vercel

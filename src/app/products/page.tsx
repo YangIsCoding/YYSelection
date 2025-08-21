@@ -29,7 +29,7 @@ export default function ProductsPage() {
       
       if (response.ok) {
         const data = await response.json()
-        const productsWithDisplayPrice = data.map((product: any) => ({
+        const productsWithDisplayPrice = data.map((product: { id: string; name: string; price: number; description: string; imageUrl: string | null; category: string; stock: number }) => ({
           ...product,
           price: product.price / 100
         }))

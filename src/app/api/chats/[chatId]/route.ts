@@ -123,7 +123,7 @@ export async function PUT(
     return NextResponse.json(chat)
   } catch (error) {
     console.error('Error updating chat:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 })
     }
     return NextResponse.json(

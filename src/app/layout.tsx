@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'YYSelection',
-  description: '由歪歪與 Pin-Yang 打造的簡易代購平台',
+  description: '由歪歪與 Yang 打造的簡易代購平台',
 }
 
 export default function RootLayout({
