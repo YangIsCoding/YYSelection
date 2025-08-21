@@ -38,8 +38,16 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
     return null
   }
 
-  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number }) => {
-    if (percent < 0.05) return null // 小於5%不顯示標籤
+  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: { 
+    cx?: number; 
+    cy?: number; 
+    midAngle?: number; 
+    innerRadius?: number; 
+    outerRadius?: number; 
+    percent?: number 
+  }) => {
+    if (!percent || percent < 0.05) return null // 小於5%不顯示標籤
+    if (!cx || !cy || !midAngle || !innerRadius || !outerRadius) return null
     
     const RADIAN = Math.PI / 180
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5

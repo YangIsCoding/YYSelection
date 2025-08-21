@@ -80,9 +80,9 @@ export async function PUT(
         if (images.length > 0) {
           const imageData = images.map((img: string | { url?: string; imageUrl?: string; alt?: string }, index: number) => ({
             productId: productId,
-            imageUrl: img.url || img.imageUrl || img,
+            imageUrl: typeof img === 'string' ? img : (img.url || img.imageUrl || ''),
             sortOrder: index,
-            alt: img.alt || null
+            alt: typeof img === 'string' ? null : (img.alt || null)
           }))
 
           await tx.productImage.createMany({

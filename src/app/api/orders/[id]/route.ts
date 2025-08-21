@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { OrderStatus, PaymentStatus } from '@prisma/client'
 
 // 獲取單一訂單詳情
 export async function GET(
@@ -54,7 +55,7 @@ export async function GET(
     const orderWithDisplayPrice = {
       ...order,
       totalAmount: order.totalAmount / 100,
-      orderItems: order.orderItems.map(item => ({
+      orderItems: order.orderItems.map((item: { id: string; unitPrice: number; subtotal: number; productName: string; productImage: string; quantity: number; orderId: string; productId: string }) => ({
         ...item,
         unitPrice: item.unitPrice / 100,
         subtotal: item.subtotal / 100
@@ -89,8 +90,8 @@ export async function PUT(
 
     // 建立更新資料物件
     const updateData: {
-      status?: string
-      paymentStatus?: string
+      status?: OrderStatus
+      paymentStatus?: PaymentStatus
       customerPhone?: string
       customerNote?: string
       adminNote?: string
@@ -132,7 +133,7 @@ export async function PUT(
     const orderWithDisplayPrice = {
       ...order,
       totalAmount: order.totalAmount / 100,
-      orderItems: order.orderItems.map(item => ({
+      orderItems: order.orderItems.map((item: { id: string; unitPrice: number; subtotal: number; productName: string; productImage: string; quantity: number; orderId: string; productId: string }) => ({
         ...item,
         unitPrice: item.unitPrice / 100,
         subtotal: item.subtotal / 100

@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
-import { StockChangeType } from '@prisma/client'
+import { StockChangeType, PrismaClient } from '@prisma/client'
 import { notifyLowStock, notifyOutOfStock, notifyRestockCompleted } from '@/lib/notification-service'
+
+type PrismaTransaction = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 export interface StockAdjustment {
   productId: string
@@ -168,7 +170,7 @@ export async function checkStockAvailability(items: Array<{ productId: string; q
 /**
  * 處理訂單相關的庫存變更（在事務內執行）
  */
-export async function processOrderStock(orderId: string, items: Array<{ productId: string; quantity: number }>, type: 'place' | 'cancel', tx?: import('@prisma/client').PrismaClient) {
+export async function processOrderStock(orderId: string, items: Array<{ productId: string; quantity: number }>, type: 'place' | 'cancel', tx?: PrismaTransaction) {
   const results = []
 
   for (const item of items) {
@@ -207,7 +209,7 @@ export async function processOrderStock(orderId: string, items: Array<{ productI
 /**
  * 在現有事務中調整庫存
  */
-export async function adjustStockInTransaction(tx: import('@prisma/client').PrismaClient, {
+export async function adjustStockInTransaction(tx: PrismaTransaction, {
   productId,
   quantity,
   reason,

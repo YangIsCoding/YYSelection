@@ -52,9 +52,9 @@ export const authOptions: NextAuthOptions = {
               // 如果你的欄位是 Boolean 才保留這行：
               // emailVerified: Boolean((profile as any)?.email_verified),
 
-              firstName: profile?.given_name,
-              lastName: profile?.family_name,
-              locale: profile?.locale || 'zh-TW',
+              firstName: (profile as { given_name?: string })?.given_name,
+              lastName: (profile as { family_name?: string })?.family_name,
+              locale: (profile as { locale?: string })?.locale || 'zh-TW',
               role: (isAdmin(email) ? 'ADMIN' : 'USER') as Role,
               lastLoginAt: now,
             },
