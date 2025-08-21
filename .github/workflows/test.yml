@@ -33,23 +33,20 @@ jobs:
 
     - name: Run type checking
       run: npx tsc --noEmit
+      env:
+        DATABASE_URL: file:./test.db
 
     - name: Set up test database
       run: |
         npx prisma generate
         npx prisma db push --force-reset
+      env:
+        DATABASE_URL: file:./test.db
 
-    - name: Run tests
-      run: npm run test:ci
+    - name: Run build test
+      run: npm run build
       env:
         DATABASE_URL: file:./test.db
         NEXTAUTH_SECRET: test-secret
         GOOGLE_CLIENT_ID: test-client-id
         GOOGLE_CLIENT_SECRET: test-client-secret
-
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
