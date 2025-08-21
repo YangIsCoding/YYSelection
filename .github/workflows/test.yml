@@ -11,6 +11,21 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
@@ -34,19 +49,17 @@ jobs:
     - name: Run type checking
       run: npx tsc --noEmit
       env:
-        DATABASE_URL: file:./test.db
+        DATABASE_URL: postgresql://test:test@localhost:5432/test
 
-    - name: Set up test database
-      run: |
-        npx prisma generate
-        npx prisma db push --force-reset
+    - name: Generate Prisma client
+      run: npx prisma generate
       env:
-        DATABASE_URL: file:./test.db
+        DATABASE_URL: postgresql://test:test@localhost:5432/test
 
     - name: Run build test
       run: npm run build
       env:
-        DATABASE_URL: file:./test.db
+        DATABASE_URL: postgresql://test:test@localhost:5432/test
         NEXTAUTH_SECRET: test-secret
         GOOGLE_CLIENT_ID: test-client-id
         GOOGLE_CLIENT_SECRET: test-client-secret
