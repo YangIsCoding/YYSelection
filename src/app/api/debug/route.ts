@@ -33,15 +33,15 @@ export async function GET() {
       await prisma.$disconnect()
       return NextResponse.json({ 
         error: 'Database connection failed',
-        details: (dbError as any)?.message,
-        code: (dbError as any)?.code,
+        details: dbError instanceof Error ? dbError.message : 'Unknown error',
+        code: dbError instanceof Error && 'code' in dbError ? dbError.code : 'UNKNOWN',
         env: process.env.NODE_ENV
       }, { status: 500 })
     }
   } catch (error) {
     return NextResponse.json({ 
       error: 'General error',
-      details: (error as any)?.message,
+      details: error instanceof Error ? error.message : 'Unknown error',
       env: process.env.NODE_ENV
     }, { status: 500 })
   }

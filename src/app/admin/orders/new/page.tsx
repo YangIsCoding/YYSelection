@@ -70,7 +70,16 @@ export default function NewOrderPage() {
       const response = await fetch('/api/products')
       if (response.ok) {
         const data = await response.json()
-        const productsWithDisplayPrice = data.map((product: any) => ({
+        const productsWithDisplayPrice = data.map((product: {
+          id: string
+          name: string
+          price: number
+          description: string
+          imageUrl: string | null
+          category: string
+          stock: number
+          isActive: boolean
+        }) => ({
           ...product,
           price: product.price / 100
         }))

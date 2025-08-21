@@ -88,7 +88,13 @@ export async function PUT(
     const { status, paymentStatus, customerPhone, customerNote, adminNote } = body
 
     // 建立更新資料物件
-    const updateData: any = {}
+    const updateData: {
+      status?: string
+      paymentStatus?: string
+      customerPhone?: string
+      customerNote?: string
+      adminNote?: string
+    } = {}
     if (status !== undefined) updateData.status = status
     if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus
     if (customerPhone !== undefined) updateData.customerPhone = customerPhone
@@ -136,7 +142,7 @@ export async function PUT(
     return NextResponse.json(orderWithDisplayPrice)
   } catch (error) {
     console.error('Error updating order:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
     return NextResponse.json(
@@ -166,7 +172,7 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting order:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
     return NextResponse.json(

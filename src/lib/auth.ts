@@ -52,9 +52,9 @@ export const authOptions: NextAuthOptions = {
               // 如果你的欄位是 Boolean 才保留這行：
               // emailVerified: Boolean((profile as any)?.email_verified),
 
-              firstName: (profile as any)?.given_name,
-              lastName: (profile as any)?.family_name,
-              locale: (profile as any)?.locale || 'zh-TW',
+              firstName: profile?.given_name,
+              lastName: profile?.family_name,
+              locale: profile?.locale || 'zh-TW',
               role: (isAdmin(email) ? 'ADMIN' : 'USER') as Role,
               lastLoginAt: now,
             },
@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
               ...session.user,
               role: (isAdmin(session.user.email) ? 'ADMIN' : 'USER') as Role,
               isActive: true
-            } as any
+            }
           }
         } catch (error) {
           console.error('Error loading user from database:', error)

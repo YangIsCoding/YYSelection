@@ -59,9 +59,9 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
         const data = await response.json()
         // 過濾掉當前商品並轉換價格
         const filtered = data
-          .filter((p: any) => p.id !== productId)
+          .filter((p: { id: string }) => p.id !== productId)
           .slice(0, 3)
-          .map((p: any) => ({
+          .map((p: { id: string; name: string; price: number; description: string; imageUrl: string | null; category: string }) => ({
             ...p,
             price: p.price / 100
           }))

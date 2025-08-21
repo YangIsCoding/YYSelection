@@ -78,7 +78,7 @@ export async function PUT(
 
         // 創建新圖片記錄
         if (images.length > 0) {
-          const imageData = images.map((img: any, index: number) => ({
+          const imageData = images.map((img: string | { url?: string; imageUrl?: string; alt?: string }, index: number) => ({
             productId: productId,
             imageUrl: img.url || img.imageUrl || img,
             sortOrder: index,
@@ -111,7 +111,7 @@ export async function PUT(
     return NextResponse.json(productWithDisplayPrice)
   } catch (error) {
     console.error('Error updating product:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
     return NextResponse.json(
@@ -163,7 +163,7 @@ export async function DELETE(
     }
   } catch (error) {
     console.error('Error deleting product:', error)
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
     return NextResponse.json(

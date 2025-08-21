@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Order, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@/app/types/order'
+import { Order, ORDER_STATUS_LABELS } from '@/app/types/order'
 
 export default function AdminOrdersPage() {
   const { data: session, status } = useSession()

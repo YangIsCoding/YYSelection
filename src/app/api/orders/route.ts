@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId') // 可選：篩選特定使用者的訂單
 
-    let whereClause: any = {}
+    const whereClause: { userId?: string } = {}
     
     if (session.user.role === 'USER') {
       // 一般使用者只能看自己的訂單
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // 檢查庫存是否足夠
     const stockCheck = await checkStockAvailability(
-      orderItems.map((item: any) => ({
+      orderItems.map((item: { productId: string; quantity: number }) => ({
         productId: item.productId,
         quantity: item.quantity
       }))
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 獲取商品資訊並計算總價
-    const productIds = orderItems.map((item: any) => item.productId)
+    const productIds = orderItems.map((item: { productId: string; quantity: number }) => item.productId)
     const products = await prisma.product.findMany({
       where: { 
         id: { in: productIds },
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     // 計算訂單詳情
     let totalAmount = 0
-    const orderItemsData = orderItems.map((item: any) => {
+    const orderItemsData = orderItems.map((item: { productId: string; quantity: number }) => {
       const product = products.find(p => p.id === item.productId)!
       const subtotal = product.price * item.quantity
       totalAmount += subtotal
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       // 扣減庫存（在同一個事務中）
       await processOrderStock(
         newOrder.id,
-        orderItems.map((item: any) => ({
+        orderItems.map((item: { productId: string; quantity: number }) => ({
           productId: item.productId,
           quantity: item.quantity
         })),

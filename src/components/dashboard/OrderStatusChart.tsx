@@ -25,7 +25,7 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
 
   const COLORS = chartData.map(item => item.color)
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number; color: string } }> }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
@@ -38,7 +38,7 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
     return null
   }
 
-  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number }) => {
     if (percent < 0.05) return null // 小於5%不顯示標籤
     
     const RADIAN = Math.PI / 180

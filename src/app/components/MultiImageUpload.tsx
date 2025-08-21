@@ -79,7 +79,7 @@ export default function MultiImageUpload({
 
       if (result.success && result.uploadedFiles) {
         // 添加新圖片到現有圖片列表
-        const newImages = result.uploadedFiles.map((file: any, index: number) => ({
+        const newImages = result.uploadedFiles.map((file: { url: string }, index: number) => ({
           url: file.url,
           alt: '', // 確保alt有初始值
           sortOrder: images.length + index

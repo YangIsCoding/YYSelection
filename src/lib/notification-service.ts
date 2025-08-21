@@ -5,7 +5,7 @@ export interface NotificationData {
   type: 'ORDER_STATUS_CHANGED' | 'ORDER_SHIPPED' | 'ORDER_DELIVERED' | 'NEW_MESSAGE' | 'LOW_STOCK_WARNING' | 'OUT_OF_STOCK' | 'STOCK_RESTOCK' | 'SYSTEM_ANNOUNCEMENT' | 'ACCOUNT_SECURITY'
   title: string
   message: string
-  data?: Record<string, any>
+  data?: Record<string, string | number | boolean>
   priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
   expiresAt?: Date
 }
