@@ -1,0 +1,48 @@
+# Node.js 相關
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git 相關
+.git
+.gitignore
+
+# 環境變數檔案
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next.js 建構產物
+.next
+out
+
+# 測試覆蓋率
+coverage
+
+# 開發工具
+.vscode
+.idea
+
+# 作業系統檔案
+.DS_Store
+Thumbs.db
+
+# 日誌檔案
+*.log
+
+# 快取檔案
+.cache
+
+# 資料庫檔案（開發用）
+*.db
+*.sqlite
+
+# 文件檔案
+README.md
+*.md
+
+# 備份檔案
+*.backup

@@ -13,6 +13,17 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? '')
 const isAdmin = (email?: string | null) =>
   !!email && ADMIN_EMAILS.includes(email.toLowerCase())
 
+// 動態設定 NextAuth URL
+const getBaseUrl = () => {
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL
+  }
+  return 'http://localhost:3000'
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
