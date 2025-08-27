@@ -6,27 +6,25 @@ services:
     ports:
       - "3002:3002"
     environment:
-      - DATABASE_URL=postgresql://postgres:devpassword@db:5432/yyselection
+      # Docker環境專用設定
       - NEXTAUTH_URL=http://localhost:3002
+      - REDIS_URL=redis://redis:6379
     env_file:
       - .env
     depends_on:
-      - db
+      - redis
     volumes:
       - .:/app
       - /app/node_modules
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev -- -p 3002"
+    command: sh -c "npm run dev -- -p 3002"
 
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: yyselection
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: devpassword
+  redis:
+    image: redis:7-alpine
     ports:
-      - "5432:5432"
+      - "6379:6379"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
 volumes:
-  postgres_data:
+  redis_data:

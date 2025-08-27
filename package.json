@@ -25,9 +25,11 @@
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "@types/ioredis": "^5.0.0",
     "@types/uuid": "^10.0.0",
     "@vercel/blob": "^1.1.1",
     "autoprefixer": "^10.4.21",
+    "ioredis": "^5.7.0",
     "next": "15.4.5",
     "next-auth": "^4.24.11",
     "picomatch": "^4.0.3",

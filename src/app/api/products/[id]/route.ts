@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getCache, setCache, deleteCache } from '@/lib/cache'
 
 // 獲取單一商品詳情
 export async function GET(
@@ -11,6 +12,18 @@ export async function GET(
   try {
     const { id: productId } = await params
 
+    // 快取鍵名
+    const cacheKey = `product:${productId}`
+
+    // 1. 先嘗試從快取取得資料
+    const cachedProduct = await getCache(cacheKey)
+    if (cachedProduct) {
+      console.log(`📦 從快取返回產品: ${productId}`)
+      return NextResponse.json(cachedProduct)
+    }
+
+    // 2. 快取沒有資料，查詢資料庫
+    console.log(`🔍 從資料庫查詢產品: ${productId}`)
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: {
@@ -52,6 +65,9 @@ export async function GET(
       stats,
       orderItems: undefined // 移除 orderItems，只保留統計資料
     }
+
+    // 3. 將查詢結果存入快取 (快取15分鐘，單個產品變動較少)
+    await setCache(cacheKey, productWithDisplayPrice, 900)
 
     return NextResponse.json(productWithDisplayPrice)
   } catch (error) {
@@ -99,6 +115,13 @@ export async function PUT(
       }
     })
 
+    // 清除相關快取
+    await deleteCache([
+      `product:${productId}`,      // 清除單個產品快取
+      'products:list:all',         // 清除產品列表快取
+    ])
+    console.log(`🔄 已清除產品快取: ${productId}`)
+
     return NextResponse.json(product)
   } catch (error) {
     console.error('Error updating product:', error)
@@ -134,6 +157,13 @@ export async function DELETE(
     await prisma.product.delete({
       where: { id: productId }
     })
+
+    // 清除相關快取
+    await deleteCache([
+      `product:${productId}`,      // 清除單個產品快取
+      'products:list:all',         // 清除產品列表快取
+    ])
+    console.log(`🔄 已清除產品快取: ${productId}`)
 
     return NextResponse.json({ success: true })
   } catch (error) {
