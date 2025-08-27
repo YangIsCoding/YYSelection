@@ -16,7 +16,7 @@ export async function GET() {
       region: process.env.VERCEL_REGION || 'unknown'
     }
 
-    // 如果有Redis，獲取一些統計資訊
+    // 如果有Redis，獲取詳細快取資訊
     let redisStats = null
     if (redisStatus) {
       try {
@@ -24,7 +24,34 @@ export async function GET() {
         const keys = await redis.keys('*')
         const info = await redis.info('memory')
         
+        // 獲取所有快取內容
+        const cacheData: Record<string, any> = {}
+        for (const key of keys) {
+          try {
+            const value = await redis.get(key)
+            const ttl = await redis.ttl(key)
+            
+            let parsedValue = value
+            try {
+              parsedValue = value ? JSON.parse(value) : null
+            } catch {
+              parsedValue = value // 如果不是JSON就保持原樣
+            }
+            
+            cacheData[key] = {
+              value: typeof parsedValue === 'object' && parsedValue !== null 
+                ? `[${Array.isArray(parsedValue) ? 'Array' : 'Object'}] ${Array.isArray(parsedValue) ? parsedValue.length + ' items' : Object.keys(parsedValue).length + ' keys'}` 
+                : parsedValue,
+              ttl: ttl > 0 ? `${ttl}秒後過期` : (ttl === -1 ? '永不過期' : '已過期'),
+              type: Array.isArray(parsedValue) ? 'Array' : typeof parsedValue
+            }
+          } catch (e) {
+            cacheData[key] = { error: '無法讀取此鍵' }
+          }
+        }
+        
         redisStats = {
+          status: '✅ Redis 連接正常',
           totalKeys: keys.length,
           keysByType: keys.reduce((acc: Record<string, number>, key) => {
             const prefix = key.split(':')[0]
@@ -33,10 +60,20 @@ export async function GET() {
           }, {}),
           memoryInfo: info.includes('used_memory_human') 
             ? info.match(/used_memory_human:([^\r\n]+)/)?.[1]?.trim() 
-            : 'unavailable'
+            : 'unavailable',
+          cacheContents: cacheData,
+          allKeys: keys
         }
       } catch (error) {
-        redisStats = { error: error instanceof Error ? error.message : 'unknown' }
+        redisStats = { 
+          status: '❌ Redis 連接失敗',
+          error: error instanceof Error ? error.message : 'unknown' 
+        }
+      }
+    } else {
+      redisStats = {
+        status: '❌ Redis 未連接',
+        message: '檢查 REDIS_URL 環境變數是否正確設定'
       }
     }
 
@@ -45,7 +82,17 @@ export async function GET() {
       data: {
         system: systemInfo,
         redis: redisStats,
-        message: 'Debug logs endpoint ready'
+        message: '快取狀態檢查器 - 替代 console.log 查看',
+        cacheActions: {
+          hit: '✅ 快取命中 - 從Redis取得資料',
+          miss: '🔍 快取未命中 - 從資料庫查詢',
+          set: '💾 已儲存到快取',
+          delete: '🗑️ 已刪除快取'
+        },
+        instructions: {
+          testCache: '訪問 /api/products 來測試產品快取',
+          checkCart: '登入後訪問 /api/cart 來測試購物車快取'
+        }
       }
     })
 
