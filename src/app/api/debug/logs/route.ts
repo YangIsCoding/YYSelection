@@ -1,23 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getRedis, pingRedis } from '@/lib/redis'
 
-// 簡單的日誌收集系統
-const logs: string[] = []
-
-// 添加日誌
-export function addLog(message: string) {
-  const timestamp = new Date().toISOString()
-  const logEntry = `[${timestamp}] ${message}`
-  logs.push(logEntry)
-  
-  // 只保留最近100條日誌
-  if (logs.length > 100) {
-    logs.shift()
-  }
-  
-  console.log(logEntry) // 同時輸出到console
-}
-
 // GET /api/debug/logs - 查看應用日誌
 export async function GET() {
   try {
@@ -62,8 +45,7 @@ export async function GET() {
       data: {
         system: systemInfo,
         redis: redisStats,
-        recentLogs: logs.slice(-20), // 最近20條日誌
-        logCount: logs.length
+        message: 'Debug logs endpoint ready'
       }
     })
 
