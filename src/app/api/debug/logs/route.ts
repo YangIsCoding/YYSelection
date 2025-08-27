@@ -31,17 +31,24 @@ export async function GET() {
             const value = await redis.get(key)
             const ttl = await redis.ttl(key)
             
-            let parsedValue = value
+            let parsedValue: any = value
             try {
               parsedValue = value ? JSON.parse(value) : null
             } catch {
               parsedValue = value // 如果不是JSON就保持原樣
             }
             
+            let displayValue: string | any = parsedValue
+            if (typeof parsedValue === 'object' && parsedValue !== null) {
+              if (Array.isArray(parsedValue)) {
+                displayValue = `[Array] ${(parsedValue as any[]).length} items`
+              } else {
+                displayValue = `[Object] ${Object.keys(parsedValue as Record<string, any>).length} keys`
+              }
+            }
+            
             cacheData[key] = {
-              value: typeof parsedValue === 'object' && parsedValue !== null 
-                ? `[${Array.isArray(parsedValue) ? 'Array' : 'Object'}] ${Array.isArray(parsedValue) ? parsedValue.length + ' items' : Object.keys(parsedValue).length + ' keys'}` 
-                : parsedValue,
+              value: displayValue,
               ttl: ttl > 0 ? `${ttl}秒後過期` : (ttl === -1 ? '永不過期' : '已過期'),
               type: Array.isArray(parsedValue) ? 'Array' : typeof parsedValue
             }
