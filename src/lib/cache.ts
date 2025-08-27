@@ -1,5 +1,16 @@
 import { getRedis } from './redis'
 
+// 日誌函數
+function logCacheOperation(message: string) {
+  const timestamp = new Date().toISOString()
+  console.log(`[${timestamp}] ${message}`)
+  
+  // 在生產環境可以發送到外部日誌服務
+  if (process.env.VERCEL) {
+    // 這裡可以集成外部日誌服務如 LogRocket, Sentry 等
+  }
+}
+
 /**
  * 通用快取工具函數
  * 使用 Cache-Aside 模式：先查快取，沒有才查資料庫
